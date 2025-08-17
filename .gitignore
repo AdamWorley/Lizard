@@ -6,11 +6,12 @@ Cargo.lock
 result
 result-*
 
-# Audio files (optional - remove if you want to commit sample audio)
+# Audio files (lizard.mp3 is included in distribution)
 audio/*.wav
-audio/*.mp3
 audio/*.flac
 audio/*.ogg
+# Keep lizard.mp3 for distribution
+!audio/lizard.mp3
 
 # IDE
 .vscode/
