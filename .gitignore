@@ -1,0 +1,21 @@
+# Rust
+/target/
+Cargo.lock
+
+# Nix
+result
+result-*
+
+# Audio files (optional - remove if you want to commit sample audio)
+audio/*.wav
+audio/*.mp3
+audio/*.flac
+audio/*.ogg
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
