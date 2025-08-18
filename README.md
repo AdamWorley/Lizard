@@ -1,52 +1,113 @@
-# Keystroke Audio Player
+# Lizard Keystroke Audio Player
 
-A Windows background service that plays audio files when specific keys are pressed.
+A cross-platform audio player that plays sounds when specific keys are pressed. Originally written in Rust, now available in Go.
 
 ## Features
 
-- Global keystroke listening (works across all applications)
-- Windows support
-- Low resource usage
-- Configurable key mappings
+- Global keystroke listening for L-I-Z-A-R-D keys
+- Audio playback when target keys are detected
+- Cross-platform support (Linux, macOS, Windows)
+- Background operation with graceful shutdown
 
-## Setup
+## Quick Start
 
-1. Install Rust: https://rustup.rs/
-2. Clone this repository
-3. Add your audio files to the `audio/` directory
-4. Build and run:
+### Go Version (Recommended)
 
 ```bash
-cargo run
+# Run directly
+go run main.go
+
+# Or build and run
+go build -o lizard-audio-player
+./lizard-audio-player
 ```
 
-For a nix system you can use the included nix devshell by using `nix develop`
+### Rust Version (Legacy)
 
-## Configuration
+```bash
+# Run directly
+cargo run
 
-Currently configured to play `audio/sample.wav` when either 'a' or 'd' keys are pressed.
+# Or build and run
+cargo build --release
+./target/release/keystroke-audio-player
+```
 
-To modify key mappings, edit the `create_key_mappings()` function in `src/main.rs`.
+## Usage
+
+1. Ensure `audio/lizard.mp3` exists in the same directory
+2. Run the application
+3. Press any letter in "LIZARD" to trigger audio playback
+4. Press Ctrl+C to exit
+
+## Platform Requirements
+
+### Linux
+- **X11**: Works with proper permissions (`/dev/input/event*` access)
+- **Wayland**: Limited support due to security restrictions
+  - May require running with elevated privileges: `sudo go run main.go`
+  - Consider using X11 session for full functionality
+
+### macOS
+- Requires accessibility permissions for global keystroke capture
+
+### Windows
+- Should work without additional setup
+- May require Microsoft Visual C++ Redistributable
+
+## File Structure
+
+```
+lizard/
+├── main.go              # Go implementation
+├── src/main.rs          # Rust implementation (legacy)
+├── audio/lizard.mp3     # Audio file to play
+├── go.mod              # Go dependencies
+├── Cargo.toml          # Rust dependencies
+└── README.md           # This file
+```
+
+## Development
+
+### Go Dependencies
+- `github.com/nathan-fiscaletti/key-logger` - Cross-platform keyboard input
+- `github.com/faiface/beep` - Audio playback (when implemented)
+
+### Rust Dependencies (Legacy)
+- `rdev` - Global input event listening
+- `rodio` - Audio playback and format decoding
+
+## Troubleshooting
+
+### Permission Denied Errors (Linux)
+```bash
+# Try running with elevated privileges
+sudo go run main.go
+```
+
+### Wayland Compatibility Issues
+- Switch to X11 session temporarily for testing
+- Or run in X11 compatibility mode
+- Global keystroke capture has security limitations on Wayland
+
+### No Audio Output
+- Verify `audio/lizard.mp3` exists
+- Check system audio settings
+- Ensure audio libraries are installed
 
 ## Supported Audio Formats
 
 - WAV
-- MP3
+- MP3  
 - FLAC
 - OGG
 
-## Usage
+## Migration from Rust to Go
 
-1. Place your audio files in the `audio/` directory
-2. Run the application: `cargo run`
-3. The app runs in the background listening for configured keystrokes
-4. Press Ctrl+C to exit
+The Go version provides:
+- Simpler dependency management
+- Better cross-platform compatibility
+- Easier deployment (single binary)
+- More reliable keyboard input handling
 
-## Windows Build
-
-Pre-built Windows executable is available in the releases section or can be built using:
-
-```bash
-cargo build --target x86_64-pc-windows-gnu --release
-```
-
+To use the legacy Rust version, see `WINDOWS_INSTRUCTIONS.md` for Windows-specific build instructions.

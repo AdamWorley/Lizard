@@ -15,61 +15,56 @@ permissions:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        include:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            artifact_name: lizard.exe
-            release_name: lizard-windows-x64.zip
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
+    - name: Set up Go
+      uses: actions/setup-go@v4
       with:
-        targets: ${{ matrix.target }}
+        go-version: '1.21'
 
-
-    - name: Cache cargo registry
+    - name: Cache Go modules
       uses: actions/cache@v4
       with:
         path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: windows-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          windows-go-
 
-    - name: Build
-      run: cargo build --release --target ${{ matrix.target }}
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Build Windows binary
+      env:
+        GOOS: windows
+        GOARCH: amd64
+        CGO_ENABLED: 1
+      run: go build -o lizard-audio-player.exe .
 
     - name: Create release package
-      shell: bash
       run: |
-        mkdir -p release
-        cp target/${{ matrix.target }}/release/${{ matrix.artifact_name }} release/
-        cp -r audio release/
+        mkdir release
+        copy lizard-audio-player.exe release/
+        xcopy audio release\audio\ /E /I
+        copy README.md release/
         cd release
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          7z a ../${{ matrix.release_name }} *
-        else
-          zip -r ../${{ matrix.release_name }} *
-        fi
+        7z a ..\lizard-windows-x64.zip *
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.release_name }}
-        path: ${{ matrix.release_name }}
+        name: lizard-windows-x64.zip
+        path: lizard-windows-x64.zip
 
     - name: Upload to release
       if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: ${{ matrix.release_name }}
+        files: lizard-windows-x64.zip
         tag_name: ${{ github.ref_name }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

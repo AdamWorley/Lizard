@@ -60,6 +60,13 @@ your-folder/
 
 ## Troubleshooting
 
+### "VCRUNTIME140.dll was not found" error
+This error indicates missing Microsoft Visual C++ runtime libraries. **Solution:**
+1. Download and install Microsoft Visual C++ Redistributable for Visual Studio 2015-2022 (x64)
+2. Download link: https://aka.ms/vs/17/release/vc_redist.x64.exe
+3. Run the installer and restart your computer if prompted
+4. Try running the executable again
+
 ### "Audio file not found" error
 - Ensure the `audio/` directory exists in the same location as the .exe
 - Verify `lizard.mp3` is present in the audio directory

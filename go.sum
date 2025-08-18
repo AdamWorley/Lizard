@@ -1,0 +1,8 @@
+github.com/nathan-fiscaletti/dev-input v1.0.4 h1:XI4OwgCaQhMXPVyi+KbXFNLC6qYtZOZBNhQkwBHCV+g=
+github.com/nathan-fiscaletti/dev-input v1.0.4/go.mod h1:UTmQgwEnWYWfg3VGWLP0toMXX+gpVYbd2Fai8qDu8Vs=
+github.com/nathan-fiscaletti/key-logger v1.1.1 h1:KVIP0O6SfntyLdULsRfUR0U4XwoGytKJIiNc9krpW4M=
+github.com/nathan-fiscaletti/key-logger v1.1.1/go.mod h1:Yt8DUMPx/XRENps5tnpz1r+dRTqCbRCcyDuffnX2nW0=
+github.com/samber/lo v1.47.0 h1:z7RynLwP5nbyRscyvcD043DWYoOcYRv3mV8lBeqOCLc=
+github.com/samber/lo v1.47.0/go.mod h1:RmDH9Ct32Qy3gduHQuKJ3gW1fMHAnE/fAzQuf6He5cU=
+golang.org/x/text v0.16.0 h1:a94ExnEXNtEwYLGJSIUxnWoxoRz/ZcCsV63ROupILh4=
+golang.org/x/text v0.16.0/go.mod h1:GhwF1Be+LQoKShO3cGOHzqOgRrGaYc9AvblQOmPVHnI=
