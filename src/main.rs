@@ -74,6 +74,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     menu.append(&about_item)?;
     menu.append(&quit_item)?;
     
+    // Extract menu item IDs before creating the thread
+    let quit_item_id = quit_item.id();
+    let about_item_id = about_item.id();
+    
     // Create tray icon with custom lizard icon
     let icon = create_icon()?;
     let _tray = TrayIconBuilder::new()
@@ -111,8 +115,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Handle tray events in a separate thread
     std::thread::spawn({
-        let quit_item_id = quit_item.id();
-        let about_item_id = about_item.id();
         let running_clone = running_clone.clone();
         
         move || {
