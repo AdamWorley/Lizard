@@ -1,11 +1,11 @@
 # Keystroke Audio Player
 
-A cross-platform background service that plays audio files when specific keys are pressed.
+A Windows background service that plays audio files when specific keys are pressed.
 
 ## Features
 
 - Global keystroke listening (works across all applications)
-- Cross-platform support (Windows, macOS, Linux)
+- Windows support
 - Low resource usage
 - Configurable key mappings
 
@@ -42,7 +42,11 @@ To modify key mappings, edit the `create_key_mappings()` function in `src/main.r
 3. The app runs in the background listening for configured keystrokes
 4. Press Ctrl+C to exit
 
-## Permissions
+## Windows Build
 
-On macOS, you may need to grant accessibility permissions for global keystroke listening.
+Pre-built Windows executable is available in the releases section or can be built using:
+
+```bash
+cargo build --target x86_64-pc-windows-gnu --release
+```
 
