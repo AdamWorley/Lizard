@@ -6,9 +6,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
 
-use tray_icon::{TrayIcon, TrayIconBuilder, menu::{Menu, MenuItem}, Icon};
-use winit::event_loop::{EventLoop, ControlFlow};
-use winit::event::Event;
+use tray_icon::{TrayIconBuilder, menu::{Menu, MenuItem}, Icon};
 
 fn get_key_audio_file(key: Key) -> Option<&'static str> {
     match key {
@@ -35,35 +33,6 @@ fn play_audio_file(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-struct KeystrokeHandler {
-    running: Arc<AtomicBool>,
-}
-
-impl KeystrokeHandler {
-    fn new(running: Arc<AtomicBool>) -> Self {
-        Self { running }
-    }
-    
-    fn callback(&self, event: rdev::Event) {
-        if !self.running.load(Ordering::Relaxed) {
-            return;
-        }
-        
-        if let EventType::KeyPress(key) = event.event_type {
-            println!("Key pressed: {:?}", key);
-            
-            if let Some(audio_file) = get_key_audio_file(key) {
-                println!("Playing audio: {} for key: {:?}", audio_file, key);
-                
-                if let Err(e) = play_audio_file(audio_file) {
-                    eprintln!("Error playing audio: {}", e);
-                } else {
-                    println!("Audio playback completed successfully");
-                }
-            }
-        }
-    }
-}
 
 fn create_icon() -> Result<Icon, Box<dyn std::error::Error>> {
     // Create a simple 16x16 lizard icon using raw bytes
@@ -98,9 +67,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let running = Arc::new(AtomicBool::new(true));
     let running_clone = running.clone();
     
-    // Create event loop for the tray
-    let event_loop = EventLoop::new()?;
-    
     // Create tray menu
     let quit_item = MenuItem::new("Quit", true, None);
     let about_item = MenuItem::new("About", true, None);
@@ -119,46 +85,64 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Lizard is now running in system tray. Press any letter in 'LIZARD' to play audio.");
     
     // Start keystroke listening in background thread
-    let keystroke_thread = {
-        let running = running.clone();
-        thread::spawn(move || {
-            let handler = KeystrokeHandler::new(running.clone());
-            
-            // Create a callback closure that captures the handler
-            let callback = move |event: rdev::Event| {
-                handler.callback(event);
-            };
-            
-            if let Err(error) = listen(callback) {
-                eprintln!("Error listening for events: {:?}", error);
-            }
-        })
-    };
-    
-    // Run the event loop for the tray
-    event_loop.run(move |event, target| {
-        target.set_control_flow(ControlFlow::Wait);
-        
-        match event {
-            Event::MenuEvent { menu_id } => {
-                if menu_id == quit_item.id() {
-                    println!("Quitting Lizard...");
-                    running_clone.store(false, Ordering::Relaxed);
-                    target.exit();
-                } else if menu_id == about_item.id() {
-                    println!("Lizard v0.1.0 - Keystroke Audio Player");
-                    println!("Press L, I, Z, A, R, or D to play lizard sounds!");
+    let keystroke_thread = thread::spawn(move || {
+        // Create a callback function that can be used with listen
+        fn callback_wrapper(event: rdev::Event) {
+            // We need to handle the event here without capturing variables
+            if let EventType::KeyPress(key) = event.event_type {
+                println!("Key pressed: {:?}", key);
+                
+                if let Some(audio_file) = get_key_audio_file(key) {
+                    println!("Playing audio: {} for key: {:?}", audio_file, key);
+                    
+                    if let Err(e) = play_audio_file(audio_file) {
+                        eprintln!("Error playing audio: {}", e);
+                    } else {
+                        println!("Audio playback completed successfully");
+                    }
                 }
             }
-            Event::TrayIconEvent { .. } => {
-                // Handle tray icon events if needed
-            }
-            Event::WindowEvent { .. } => {
-                // Handle window events if needed  
-            }
-            _ => {}
         }
-    })?;
+        
+        if let Err(error) = listen(callback_wrapper) {
+            eprintln!("Error listening for events: {:?}", error);
+        }
+    });
+    
+    // Handle tray events in a separate thread
+    std::thread::spawn({
+        let quit_item_id = quit_item.id();
+        let about_item_id = about_item.id();
+        let running_clone = running_clone.clone();
+        
+        move || {
+            loop {
+                if let Ok(event) = tray_icon::menu::MenuEvent::receiver().try_recv() {
+                    match event.id {
+                        id if id == quit_item_id => {
+                            println!("Quitting Lizard...");
+                            running_clone.store(false, Ordering::Relaxed);
+                            std::process::exit(0);
+                        }
+                        id if id == about_item_id => {
+                            println!("Lizard v0.1.0 - Keystroke Audio Player");
+                            println!("Press L, I, Z, A, R, or D to play lizard sounds!");
+                        }
+                        _ => {}
+                    }
+                }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+            }
+        }
+    });
+    
+    // Keep the main thread alive
+    loop {
+        if !running.load(Ordering::Relaxed) {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
     
     // Wait for the keystroke thread to finish
     let _ = keystroke_thread.join();
